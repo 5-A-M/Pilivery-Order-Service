@@ -9,10 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import com.fiveam.orderservice.exception.bussiness.BusinessLogicException;
@@ -25,6 +22,7 @@ import com.fiveam.orderservice.payment.service.PayService;
 import com.fiveam.orderservice.payment.service.SubsPayService;
 import com.fiveam.orderservice.redis.RedisConfig;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.net.URI;
 import java.util.HashMap;
@@ -54,14 +52,14 @@ public class PaymentController {
 
     //    @PreAuthorize("isAuthenticated()")
     @GetMapping("/kakao-pay")
-    public KakaoPayRequestDto payRequest(  @RequestParam(name = "orderId") Long orderId ){
+    public KakaoPayRequestDto payRequest(@RequestHeader("Authorization") String authorization, @RequestParam(name = "orderId") Long orderId ){
 
 
         Order order = orderService.findOrder(orderId);
         KakaoPayRequestDto requestResponse =
                 payService.kakaoPayRequest(order.getExpectPrice(), order.getTotalQuantity(), orderId);
         redis.redisTemplate().opsForValue().set(
-                String.valueOf(userService.getLoginUser().getId()),
+                String.valueOf(userService.getLoginUser(authorization).getId()),
                 requestResponse.getTid(), 1000 * 60 * 15, TimeUnit.MILLISECONDS
         );
 

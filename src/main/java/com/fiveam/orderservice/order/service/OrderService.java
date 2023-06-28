@@ -73,7 +73,7 @@ public class OrderService {
     }
 
     public Page<Order> findOrders(Long userId, int page, boolean subscription) {
-        UserInfoResponseDto user = userService.getLoginUser();
+        UserInfoResponseDto user = userService.findUserById(userId);
 
         if(subscription) {
             Page<Order> findAllOrder = orderRepository.findAllByUserIdAndSubscriptionAndOrderStatusNot(

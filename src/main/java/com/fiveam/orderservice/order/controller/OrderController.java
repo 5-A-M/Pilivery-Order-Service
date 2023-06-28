@@ -21,6 +21,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.validation.constraints.Positive;
 import java.util.List;
@@ -41,12 +42,14 @@ public class OrderController {
     private final ItemOrderMapper itemOrderMapper;
 
     @PostMapping("/single") // 상세페이지에서 바로 구매하기 요청을 하는 경우
-    public ResponseEntity postSingleOrder(@RequestBody @Valid ItemOrderDto.Post itemOrderPostDto) {
+    public ResponseEntity postSingleOrder(
+            @RequestHeader("Authorization") String authorization,
+            @RequestBody @Valid ItemOrderDto.Post itemOrderPostDto) {
 
         List<ItemOrder> itemOrders = itemOrderService.createItemOrder(
                 itemOrderMapper.itemOrderPostDtoToItemOrder(itemOrderPostDto, itemService));
 
-        UserInfoResponseDto user = userService.getLoginUser(); // 기본 배송지 정보를 불러오기 위함.
+        UserInfoResponseDto user = userService.getLoginUser(authorization); // 기본 배송지 정보를 불러오기 위함.
 
         Order order = orderService.callOrder(itemOrders, user);
 
@@ -55,10 +58,12 @@ public class OrderController {
     }
 
     @PostMapping// 장바구니에서 주문요청을 하는 경우
-    public ResponseEntity postOrder(@RequestParam(value="subscription", defaultValue="false") boolean subscription) {
+    public ResponseEntity postOrder(
+            @RequestHeader("Authorization") String authorization,
+            @RequestParam(value="subscription", defaultValue="false")
+            boolean subscription) {
 
-        UserInfoResponseDto user = userService.getLoginUser();
-
+        UserInfoResponseDto user = userService.getLoginUser(authorization);
 
         List<ItemOrder> itemOrders = itemOrderMapper.itemCartsToItemOrders(
                 itemService.findItemCarts(user.getCartId(), subscription, true), itemService);
@@ -72,9 +77,10 @@ public class OrderController {
     }
 
     @GetMapping // 로그인 한 유저의 일반 / 정기 주문 목록 불러오기
-    public ResponseEntity getOrders(@Positive @RequestParam(value="page", defaultValue="1") int page,
+    public ResponseEntity getOrders(@RequestHeader("Authorization") String authorization, @Positive @RequestParam(value="page", defaultValue="1") int page,
                                     @RequestParam(value="subscription", defaultValue="false") boolean subscription) {
-        Page<Order> pageOrders = orderService.findOrders(userService.getLoginUser().getId(), page-1, subscription);
+        log.info("List Order User Token: " + authorization);
+        Page<Order> pageOrders = orderService.findOrders(userService.getLoginUser(authorization).getId(), page-1, subscription);
 
         List<Order> orders = pageOrders.getContent();
 
@@ -83,8 +89,8 @@ public class OrderController {
     }
 
     @GetMapping("/subs") // 정기 구독 목록 불러오기
-    public ResponseEntity getSubsciptions(@Positive @RequestParam(value = "page", defaultValue = "1") int page) {
-        Page<ItemOrder> itemOrderPage = orderService.findAllSubs(userService.getLoginUser().getId(), page-1);
+    public ResponseEntity getSubsciptions(@RequestHeader("Authorization") String authorization, @Positive @RequestParam(value = "page", defaultValue = "1") int page) {
+        Page<ItemOrder> itemOrderPage = orderService.findAllSubs(userService.getLoginUser(authorization).getId(), page-1);
         List<ItemOrder> itemOrders = itemOrderPage.getContent();
 
         return new ResponseEntity<>(new MultiResponseDto<>(
