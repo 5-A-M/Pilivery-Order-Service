@@ -14,8 +14,10 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public interface ItemOrderMapper {
 
-    default ItemOrder itemOrderPostDtoToItemOrder(ItemOrderDto.Post itemOrderPostDto,
-                                                  ItemServiceClient itemService) {
+    default ItemOrder itemOrderPostDtoToItemOrder(
+            ItemOrderDto.Post itemOrderPostDto,
+            ItemServiceClient itemService
+    ) {
 
         ItemOrder itemOrder = new ItemOrder();
         itemOrder.setQuantity(itemOrderPostDto.getQuantity());
@@ -24,6 +26,8 @@ public interface ItemOrderMapper {
 
         ItemInfoResponseDto item = itemService.findVerifiedItem(itemOrderPostDto.getItemId());
         itemOrder.setItemId(item.getItemId());
+
+        System.out.println("아이템 아이디 설정중: " + item);
 
         return itemOrder;
     }
@@ -63,7 +67,7 @@ public interface ItemOrderMapper {
         itemOrderSimpleResponseDto.setSubscription(itemOrder.isSubscription());
 
         Long itemId = itemOrder.getItemId();
-        ItemInfoResponseDto item = itemService.getItem(itemId);
+        ItemInfoResponseDto item = itemService.findVerifiedItem(itemId);
 
         itemOrderSimpleResponseDto.setItem(ItemSimpleResponseDto.fromItemInfoResponse(item));
 

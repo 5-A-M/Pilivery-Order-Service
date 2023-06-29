@@ -1,10 +1,7 @@
 package com.fiveam.orderservice.order.entity;
 
 import com.fiveam.orderservice.audit.Auditable;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 
 import javax.persistence.*;
@@ -15,6 +12,7 @@ import java.time.ZonedDateTime;
 @Entity(name = "ITEM_ORDERS")
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString
 public class ItemOrder extends Auditable {
 
     @Id

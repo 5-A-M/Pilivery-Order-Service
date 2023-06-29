@@ -18,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -45,6 +46,7 @@ public class OrderController {
     public ResponseEntity postSingleOrder(
             @RequestHeader("Authorization") String authorization,
             @RequestBody @Valid ItemOrderDto.Post itemOrderPostDto) {
+        log.info("바로구매 진행중: " + itemOrderPostDto);
 
         List<ItemOrder> itemOrders = itemOrderService.createItemOrder(
                 itemOrderMapper.itemOrderPostDtoToItemOrder(itemOrderPostDto, itemService));
@@ -77,11 +79,14 @@ public class OrderController {
     }
 
     @GetMapping // 로그인 한 유저의 일반 / 정기 주문 목록 불러오기
-    public ResponseEntity getOrders(@RequestHeader("Authorization") String authorization, @Positive @RequestParam(value="page", defaultValue="1") int page,
-                                    @RequestParam(value="subscription", defaultValue="false") boolean subscription) {
-        log.info("List Order User Token: " + authorization);
-        Page<Order> pageOrders = orderService.findOrders(userService.getLoginUser(authorization).getId(), page-1, subscription);
+    public ResponseEntity getOrders(
+            @RequestHeader("Authorization") String authorization,
+            @Positive @RequestParam(value="page", defaultValue="1") int page,
+            @RequestParam(value="subscription", defaultValue="false") boolean subscription) {
 
+        log.info("List Order User Token: " + authorization);
+
+        Page<Order> pageOrders = orderService.findOrders(userService.getLoginUser(authorization).getId(), page-1, subscription);
         List<Order> orders = pageOrders.getContent();
 
         return new ResponseEntity<>(new MultiResponseDto<>(
@@ -90,6 +95,7 @@ public class OrderController {
 
     @GetMapping("/subs") // 정기 구독 목록 불러오기
     public ResponseEntity getSubsciptions(@RequestHeader("Authorization") String authorization, @Positive @RequestParam(value = "page", defaultValue = "1") int page) {
+        log.info("정기 구독 목록 불러오는 중: " + userService.getLoginUser(authorization));
         Page<ItemOrder> itemOrderPage = orderService.findAllSubs(userService.getLoginUser(authorization).getId(), page-1);
         List<ItemOrder> itemOrders = itemOrderPage.getContent();
 

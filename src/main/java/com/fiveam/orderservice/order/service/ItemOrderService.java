@@ -3,6 +3,7 @@ package com.fiveam.orderservice.order.service;
 import com.fiveam.orderservice.client.ItemServiceClient;
 import com.fiveam.orderservice.exception.bussiness.BusinessLogicException;
 import com.fiveam.orderservice.exception.bussiness.ExceptionCode;
+import com.fiveam.orderservice.order.dto.SalesQuantityDto;
 import com.fiveam.orderservice.order.entity.ItemOrder;
 import com.fiveam.orderservice.order.entity.Order;
 import com.fiveam.orderservice.order.reposiroty.ItemOrderRepository;
@@ -27,7 +28,6 @@ public class ItemOrderService {
     private final ItemServiceClient itemService;
     private final ItemOrderRepository itemOrderRepository;
     private final OrderRepository orderRepository;
-
 
     public List<ItemOrder> createItemOrder( ItemOrder itemOrder ){
         itemOrderRepository.save(itemOrder);
@@ -61,6 +61,7 @@ public class ItemOrderService {
 
 //        TODO: 효율성 문제(itemId 하나당 통신을 보내버림)
         for(ItemOrder itemOrder : itemOrders){
+            log.info("상품 아이디: " + itemOrder.getItemId());
             int quantity = itemOrder.getQuantity();
             int price = itemService.getItem(itemOrder.getItemId()).getPrice();
             totalPrice += ( quantity * price );
@@ -104,12 +105,15 @@ public class ItemOrderService {
     public void minusSales( List<ItemOrder> itemOrders ){ // 주문 취소할 경우 아이템 판매량에서 제외
 
         for(ItemOrder itemOrder : itemOrders){
-            itemService.minusSales(itemOrder.getItemId(), itemOrder.getQuantity());
+            itemService.minusSales(itemOrder.getItemId(),
+                    SalesQuantityDto.builder().quantity(itemOrder.getQuantity()).build());
         }
     }
 
     public void plusSales( ItemOrder itemOrder ){ // 주문 요청할 경우 아이템 판매량 증가
-        itemService.plusSales(itemOrder.getItemId(), itemOrder.getQuantity());
+        log.info("Plus Sales Quantity" + itemOrder);
+        itemService.plusSales(itemOrder.getItemId(),
+                SalesQuantityDto.builder().quantity(itemOrder.getQuantity()).build());
     }
 
     public ItemOrder setItemPeriod( Long orderId, Integer period, ItemOrder io ){

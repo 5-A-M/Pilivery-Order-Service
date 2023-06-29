@@ -1,6 +1,5 @@
 package com.fiveam.orderservice.order.dto;
 
-import com.fiveam.orderservice.response.ItemInfoResponseDto;
 import com.fiveam.orderservice.response.ItemSimpleResponseDto;
 import lombok.*;
 
@@ -10,9 +9,13 @@ import java.time.ZonedDateTime;
 public class ItemOrderDto {
 
     @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @ToString
     public static class Post {
 
-        private long itemId;
+        private Long itemId;
 
         @Min(value = 1, message = "수량은 1개 이상 선택해주세요.")
         private Integer quantity;
@@ -27,7 +30,7 @@ public class ItemOrderDto {
     @Builder
     public static class SimpleResponse { // 주문 목록 조회 용도
 
-        private long itemOrderId;
+        private Long itemOrderId;
         private int quantity;
         private int period;
         private boolean subscription;
@@ -43,8 +46,8 @@ public class ItemOrderDto {
     @AllArgsConstructor
     public static class SubResponse { // 정기 구독 목록 조회
 
-        private long orderId;
-        private long itemOrderId;
+        private Long orderId;
+        private Long itemOrderId;
         private int quantity;
         private int period;
         private ItemSimpleResponseDto item;
