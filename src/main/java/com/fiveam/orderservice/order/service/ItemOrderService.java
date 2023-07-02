@@ -8,7 +8,7 @@ import com.fiveam.orderservice.order.entity.ItemOrder;
 import com.fiveam.orderservice.order.entity.Order;
 import com.fiveam.orderservice.order.reposiroty.ItemOrderRepository;
 import com.fiveam.orderservice.order.reposiroty.OrderRepository;
-import com.fiveam.orderservice.response.ItemInfoResponseDto;
+import com.fiveam.orderservice.response.ItemDetailResponseDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -61,9 +61,9 @@ public class ItemOrderService {
 
 //        TODO: 효율성 문제(itemId 하나당 통신을 보내버림)
         for(ItemOrder itemOrder : itemOrders){
-            log.info("상품 아이디: " + itemOrder.getItemId());
+            log.info("Item Order:" + itemOrder.getItemId());
             int quantity = itemOrder.getQuantity();
-            int price = itemService.getItem(itemOrder.getItemId()).getPrice();
+            int price = itemService.findVerifiedItem(itemOrder.getItemId()).getPrice();
             totalPrice += ( quantity * price );
         }
 
@@ -78,8 +78,8 @@ public class ItemOrderService {
 
 //        TODO: 효율성 문제(itemId 하나당 통신을 보내버림)
         for(ItemOrder itemOrder : itemOrders){
+            ItemDetailResponseDto item = itemService.findVerifiedItem(itemOrder.getItemId());
             int quantity = itemOrder.getQuantity();
-            ItemInfoResponseDto item = itemService.getItem(itemOrder.getItemOrderId());
             int price = item.getPrice();
             int discountRate = item.getDiscountRate();
             totalDiscountPrice += ( quantity * price * discountRate / 100 );

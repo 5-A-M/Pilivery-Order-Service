@@ -1,10 +1,7 @@
 package com.fiveam.orderservice.order.entity;
 
 import com.fiveam.orderservice.audit.Auditable;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -78,5 +75,10 @@ public class Order extends Auditable {
         this.itemOrders = origin.getItemOrders();
         this.orderStatus = OrderStatus.ORDER_SUBSCRIBE;
         this.totalQuantity = origin.getTotalQuantity();
+    }
+
+    @Override
+    public String toString() {
+        return "OrderId: " + orderId + "totalPrice: " + totalPrice + ", expectPrice: " + expectPrice;
     }
 }

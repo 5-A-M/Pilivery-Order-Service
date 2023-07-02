@@ -4,7 +4,7 @@ import com.fiveam.orderservice.client.ItemServiceClient;
 import com.fiveam.orderservice.order.dto.OrderDto;
 import com.fiveam.orderservice.order.entity.ItemOrder;
 import com.fiveam.orderservice.order.entity.Order;
-import com.fiveam.orderservice.response.ItemInfoResponseDto;
+import com.fiveam.orderservice.response.ItemDetailResponseDto;
 import com.fiveam.orderservice.response.ItemSimpleResponseDto;
 import com.fiveam.orderservice.response.MultiResponseDto;
 import org.mapstruct.Mapper;
@@ -40,8 +40,9 @@ public interface OrderMapper {
 
         // 한 건의 주문에 여러 건의 아이템의 포함되어 있어도, 첫번째 제품의 정보를 사용함.
         Long itemId = order.getItemOrders().get(0).getItemId();
-        ItemInfoResponseDto item = itemService.getItem(itemId);
+        ItemDetailResponseDto item = itemService.findVerifiedItem(itemId);
 
+        System.out.println(item);
         orderSimpleResponseDto.setItem(ItemSimpleResponseDto.fromItemInfoResponse(item));
 
         orderSimpleResponseDto.setCreatedAt(order.getCreatedAt().toLocalDate().toString());
@@ -56,6 +57,7 @@ public interface OrderMapper {
         List<OrderDto.SimpleResponse> orderSimpleResponseDtos = new ArrayList<>(orders.size());
 
         for(Order order : orders) {
+            System.out.println(order);
             orderSimpleResponseDtos.add(orderToOrderSimpleResponseDto(itemService, order));
         }
 
@@ -67,7 +69,7 @@ public interface OrderMapper {
             Order order,
             ItemOrderMapper itemOrderMapper
     ) {
-
+        System.out.println(order);
         OrderDto.DetailResponse orderDetailResponseDto = new OrderDto.DetailResponse();
         orderDetailResponseDto.setOrderId(order.getOrderId());
         orderDetailResponseDto.setName(order.getName());

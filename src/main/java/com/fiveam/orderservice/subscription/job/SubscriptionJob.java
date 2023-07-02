@@ -8,7 +8,7 @@ import com.fiveam.orderservice.order.entity.ItemOrder;
 import com.fiveam.orderservice.order.entity.Order;
 import com.fiveam.orderservice.order.service.ItemOrderService;
 import com.fiveam.orderservice.order.service.OrderService;
-import com.fiveam.orderservice.response.ItemInfoResponseDto;
+import com.fiveam.orderservice.response.ItemDetailResponseDto;
 import com.fiveam.orderservice.response.UserInfoResponseDto;
 import com.fiveam.orderservice.subscription.service.SubscriptionService;
 import lombok.RequiredArgsConstructor;
@@ -77,7 +77,7 @@ public class SubscriptionJob implements Job {
 
     private JobDetail updateJob( ItemOrder itemOrder, Long orderId, Order newOrder, ItemOrder newItemOrder ){
         UserInfoResponseDto user = subscriptionService.getUser(orderId);
-        ItemInfoResponseDto item = itemService.getItem(itemOrder.getItemId());
+        ItemDetailResponseDto item = itemService.findVerifiedItem(itemOrder.getItemId());
         JobKey jobkey = jobKey(user.getId() + item.getTitle(), String.valueOf(user.getId()));
         return jobDetail.buildJobDetail(jobkey, newOrder.getOrderId(), newItemOrder);
     }

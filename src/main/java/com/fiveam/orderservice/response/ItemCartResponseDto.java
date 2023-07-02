@@ -1,10 +1,10 @@
 package com.fiveam.orderservice.response;
 
-import lombok.Builder;
-import lombok.Data;
+import lombok.*;
 
 @Data
 @Builder
+@ToString
 public class ItemCartResponseDto {
     private Long itemCartId;
     private Integer quantity;

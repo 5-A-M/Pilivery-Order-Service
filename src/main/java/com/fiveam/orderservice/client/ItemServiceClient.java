@@ -2,6 +2,7 @@ package com.fiveam.orderservice.client;
 
 import com.fiveam.orderservice.order.dto.SalesQuantityDto;
 import com.fiveam.orderservice.response.ItemCartResponseDto;
+import com.fiveam.orderservice.response.ItemDetailResponseDto;
 import com.fiveam.orderservice.response.ItemInfoResponseDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
@@ -11,21 +12,21 @@ import java.util.List;
 @FeignClient("item-service")
 public interface ItemServiceClient {
     @GetMapping("/items/{itemId}")
-    ItemInfoResponseDto getItem(@PathVariable Long itemId);
+    ItemDetailResponseDto getItem(@PathVariable Long itemId);
 
     @GetMapping("/items/{itemId}/check")
-    ItemInfoResponseDto findVerifiedItem(@PathVariable Long itemId);
+    ItemDetailResponseDto findVerifiedItem(@PathVariable Long itemId);
 
     @GetMapping("/carts/itemcarts/{itemCartId}")
     void getItemCart(@PathVariable Long itemCartId);
 
     @DeleteMapping("/carts/itemcarts/{itemCartId}")
-    void deleteItemCart(@PathVariable Long itemCartId);
+    void deleteItemCart(@PathVariable Long itemCartId, @RequestParam("subscription") boolean subscription);
 
-    @GetMapping("/carts/{cartId}/itemcarts/{subscription}")
-    List<ItemCartResponseDto> findItemCarts(@PathVariable Long cartId, @PathVariable Boolean subscription, Boolean buyNow);
+    @GetMapping("/carts/{cartId}/itemcarts/{subscription}/buyNow/{buyNow}")
+    List<ItemCartResponseDto> findItemCarts(@PathVariable Long cartId, @PathVariable boolean subscription, @PathVariable boolean buyNow);
 
-    @GetMapping("/carts/itemcarts/{cartId}/{subscription}")
+    @PostMapping("/carts/itemcarts/refresh/{cartId}/{subscription}")
     void refreshCart(@PathVariable Long cartId, @PathVariable Boolean subscription);
 
     @PostMapping("/items/list")

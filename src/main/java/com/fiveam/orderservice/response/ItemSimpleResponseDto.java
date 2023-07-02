@@ -18,7 +18,7 @@ public class ItemSimpleResponseDto {
     private int discountRate;
     private int disCountPrice;
 
-    public static ItemSimpleResponseDto fromItemInfoResponse(ItemInfoResponseDto item) {
+    public static ItemSimpleResponseDto fromItemInfoResponse(ItemDetailResponseDto item) {
         return ItemSimpleResponseDto.builder()
                 .itemId(item.getItemId())
                 .brand(item.getBrand())

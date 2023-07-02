@@ -84,10 +84,10 @@ public class OrderController {
             @Positive @RequestParam(value="page", defaultValue="1") int page,
             @RequestParam(value="subscription", defaultValue="false") boolean subscription) {
 
-        log.info("List Order User Token: " + authorization);
-
         Page<Order> pageOrders = orderService.findOrders(userService.getLoginUser(authorization).getId(), page-1, subscription);
         List<Order> orders = pageOrders.getContent();
+
+        log.info(userService.getLoginUser(authorization).getId() + "'s orders: " + orders);
 
         return new ResponseEntity<>(new MultiResponseDto<>(
                 orderMapper.ordersToOrderSimpleResponseDtos(itemService, orders), pageOrders), HttpStatus.OK);
@@ -134,7 +134,7 @@ public class OrderController {
     }
 
     @GetMapping("/item-orders/{itemOrderId}")
-    public ItemOrderInfoResponseDto findItemOrder(Long itemOrderId) {
+    public ItemOrderInfoResponseDto findItemOrder(@PathVariable Long itemOrderId) {
         return ItemOrderInfoResponseDto.fromEntity(itemOrderService.findItemOrder(itemOrderId));
     }
 }

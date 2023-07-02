@@ -36,30 +36,37 @@ import java.util.concurrent.TimeUnit;
 public class PaymentController {
     private final PayService payService;
     private final OrderService orderService;
-    private Long userId;
     private final UserServiceClient userService;
     private final RedisConfig redis;
     private final SubsPayService subsPayService;
+    private Long userId;
+    private String clientAuth;
 
-    @Value("${front.scheme}")
+    @Value(("${back.url}"))
+    private String backUrl;
+
+    @Value("${back.scheme}")
     private String scheme;
 
-    @Value("${front.host}")
+    @Value("${back.host}")
     private String host;
 
-    @Value("${front.port}")
+    @Value("${back.port}")
     private String port;
 
     //    @PreAuthorize("isAuthenticated()")
     @GetMapping("/kakao-pay")
     public KakaoPayRequestDto payRequest(@RequestHeader("Authorization") String authorization, @RequestParam(name = "orderId") Long orderId ){
-
+        UserInfoResponseDto user = userService.getLoginUser(authorization);
+        userId = user.getId();
+        clientAuth = authorization;
 
         Order order = orderService.findOrder(orderId);
         KakaoPayRequestDto requestResponse =
                 payService.kakaoPayRequest(order.getExpectPrice(), order.getTotalQuantity(), orderId);
+
         redis.redisTemplate().opsForValue().set(
-                String.valueOf(userService.getLoginUser(authorization).getId()),
+                String.valueOf(userId),
                 requestResponse.getTid(), 1000 * 60 * 15, TimeUnit.MILLISECONDS
         );
 
@@ -68,8 +75,9 @@ public class PaymentController {
 
 
     @GetMapping("/kakao/success")
-    public ResponseEntity payApprove( @RequestParam("pg_token") String pgToken ){
-
+    public ResponseEntity payApprove(
+            @RequestParam("pg_token") String pgToken
+    ){
         String tid = (String) redis.redisTemplate().opsForValue().get(String.valueOf(userId));
         if(tid == null) throw new BusinessLogicException(ExceptionCode.EXPIRED_TID);
 
@@ -84,8 +92,8 @@ public class PaymentController {
 
 
     @GetMapping("/kakao/subs/success")
-    public void paySubsApprove( @RequestParam("pg_token") String pgToken ){
-
+    public void paySubsApprove(
+            @RequestParam("pg_token") String pgToken ){
         String tid = (String) redis.redisTemplate().opsForValue().get(String.valueOf(userId));
         if(tid == null) throw new BusinessLogicException(ExceptionCode.EXPIRED_TID);
 
@@ -118,7 +126,7 @@ public class PaymentController {
 //        response.sendRedirect(url); // 302
 
         HashMap<String, String> body = new HashMap<>();
-        body.put("redirectUrl", scheme + host + port + "/mypage/order/normal");
+        body.put("redirectUrl", backUrl + "/mypage/order/normal");
         body.put("status", String.valueOf(HttpStatus.OK.value()));
         return ResponseEntity.ok(body);
     }
@@ -147,7 +155,7 @@ public class PaymentController {
             @RequestParam(name = "orderId") String orderId ) throws IOException{
 
         Order order = orderService.findOrder(Long.parseLong(orderId));
-        String sid = userService.findUserById(order.getUserId()).getSid();
+        String sid = userService.findUserById(order.getUserId()).getBody().getSid();
         log.warn("sid = {}", sid);
 
         KakaoPayApproveDto kakaoPayApproveDto = subsPayService.kakaoSubsPayRequest(order.getExpectPrice(), order.getTotalQuantity(), Long.parseLong(orderId), sid);
@@ -193,11 +201,11 @@ public class PaymentController {
         RestTemplate restTemplate = new RestTemplate();
         restTemplate.getForObject(uri, String.class);
     }
+
     private void hasSid( KakaoPayApproveDto kakaoPayApproveDto, Long orderId){
         Order order = orderService.findOrder(orderId);
-        UserInfoResponseDto user = userService.findUserById(order.getUserId());
+        UserInfoResponseDto user = userService.findUserById(clientAuth, order.getUserId()).getBody();
 
-//        TODO: Sid를 Set해서 DB에서 저장하지 않아서 정기 결제가 이루어지지 않을 것 같음(수정해야함)
         if(user.getSid() != null) return;
         user.setSid(kakaoPayApproveDto.getSid());
     }

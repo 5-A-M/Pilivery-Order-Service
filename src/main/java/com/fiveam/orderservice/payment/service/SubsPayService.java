@@ -28,7 +28,7 @@ public class SubsPayService {
         Order order = orderService.findOrder(orderId);
 
         Integer itemQuantity = order.getTotalItems();
-        String itemName = itemService.getItem(order.getItemOrders().get(0).getItemId()).getTitle();
+        String itemName = itemService.findVerifiedItem(order.getItemOrders().get(0).getItemId()).getTitle();
         String item_name = get_item_name(itemQuantity, itemName);
         order_id = orderId;
         MultiValueMap<String, String> parameters;

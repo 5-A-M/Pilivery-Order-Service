@@ -1,11 +1,13 @@
 package com.fiveam.orderservice.payment.dto;
 
 import lombok.Getter;
+import lombok.ToString;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 
 @Getter
+@ToString
 public class KakaoPayRequestDto {
 
     private String tid;

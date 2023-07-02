@@ -10,6 +10,7 @@ import com.fiveam.orderservice.order.reposiroty.ItemOrderRepository;
 import com.fiveam.orderservice.order.reposiroty.OrderRepository;
 import com.fiveam.orderservice.response.UserInfoResponseDto;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -19,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -46,6 +48,7 @@ public class OrderService {
         order.setTotalQuantity(itemOrderService.countQuantity(itemOrders));
 
         for(ItemOrder itemOrder : itemOrders) {
+            log.info("Item Order: " + itemOrder);
             itemOrder.setOrder(order);
             itemOrderService.plusSales(itemOrder); // 판매량 누적
             itemOrderRepository.save(itemOrder);
@@ -73,8 +76,8 @@ public class OrderService {
     }
 
     public Page<Order> findOrders(Long userId, int page, boolean subscription) {
-        UserInfoResponseDto user = userService.findUserById(userId);
-
+        UserInfoResponseDto user = userService.findUserById(userId).getBody();
+        log.info("Find Orders For User: " + user);
         if(subscription) {
             Page<Order> findAllOrder = orderRepository.findAllByUserIdAndSubscriptionAndOrderStatusNot(
                     PageRequest.of(page, 7, Sort.by("orderId").descending()),

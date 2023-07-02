@@ -6,7 +6,7 @@ import com.fiveam.orderservice.order.entity.ItemOrder;
 import com.fiveam.orderservice.order.entity.Order;
 import com.fiveam.orderservice.order.service.ItemOrderService;
 import com.fiveam.orderservice.order.service.OrderService;
-import com.fiveam.orderservice.response.ItemInfoResponseDto;
+import com.fiveam.orderservice.response.ItemDetailResponseDto;
 import com.fiveam.orderservice.response.UserInfoResponseDto;
 import com.fiveam.orderservice.subscription.job.JobDetailService;
 import com.fiveam.orderservice.subscription.trigger.TriggerService;
@@ -39,7 +39,7 @@ public class SubscriptionService {
 
     public void startSchedule( Long orderId, ItemOrder itemOrder ) throws SchedulerException{
         UserInfoResponseDto user = getUser(orderId);
-        ItemInfoResponseDto item = itemService.getItem(itemOrder.getItemId());
+        ItemDetailResponseDto item = itemService.findVerifiedItem(itemOrder.getItemId());
         JobKey jobkey = jobKey(user.getId() + item.getTitle(), String.valueOf(user.getId()));
         JobDetail payDay = jobDetail.buildJobDetail(jobkey, orderId, itemOrder);
         Trigger lastTrigger = trigger.buildTrigger(jobkey, orderId, itemOrder);
@@ -86,7 +86,7 @@ public class SubscriptionService {
     private void deleteSchedule( Long orderId, ItemOrder itemOrder ) throws SchedulerException{
         log.info("delete schedule");
         UserInfoResponseDto user = getUser(orderId);
-        ItemInfoResponseDto item = itemService.getItem(itemOrder.getItemId());
+        ItemDetailResponseDto item = itemService.findVerifiedItem(itemOrder.getItemId());
         scheduler.deleteJob(jobKey(user.getId() + item.getTitle(), String.valueOf(user.getId())));
     }
 
@@ -127,7 +127,7 @@ public class SubscriptionService {
     }
 
     public UserInfoResponseDto getUser( Long orderId ){
-        return userService.findUserById(orderService.findOrder(orderId).getUserId());
+        return userService.findUserById(orderService.findOrder(orderId).getUserId()).getBody();
     }
 
     private ItemOrder findItemOrderInOrder( Long orderId, Long itemOrderId ){

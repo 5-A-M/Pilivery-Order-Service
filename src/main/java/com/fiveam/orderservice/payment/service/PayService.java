@@ -41,13 +41,16 @@ public class PayService {
     @Value("${pay.kakao.admin-key}")
     private String kakaoPayAdminKey;
 
-    @Value("${front.scheme}")
+    @Value("${back.url}")
+    private String backUrl;
+
+    @Value("${back.scheme}")
     private String scheme;
 
-    @Value("${front.host}")
+    @Value("${back.host}")
     private String host;
 
-    @Value("${front.port}")
+    @Value("${back.port}")
     private String port;
 
     public KakaoPayRequestDto kakaoPayRequest( int totalAmount, int quantity, Long orderId ){
@@ -55,7 +58,7 @@ public class PayService {
         Order order = orderService.findOrder(orderId);
 
         Integer itemQuantity = order.getTotalItems();
-        String itemName = itemService.getItem(order.getItemOrders().get(0).getItemId()).getTitle();
+        String itemName = itemService.findVerifiedItem(order.getItemOrders().get(0).getItemId()).getTitle();
         String item_name = get_item_name(itemQuantity, itemName);
         order_id = orderId;
 
@@ -70,6 +73,7 @@ public class PayService {
         String url = "https://kapi.kakao.com/v1/payment/ready";
         RestTemplate restTemplate = new RestTemplate();
         KakaoPayRequestDto requestResponse = restTemplate.postForObject(url, kakaoRequestEntity, KakaoPayRequestDto.class);
+        System.out.println("Kakao Pay Request Reponse: " + requestResponse);
         log.info("결제 준비 응답객체 " + requestResponse);
 
         return requestResponse;
@@ -153,8 +157,8 @@ public class PayService {
         parameters.add("quantity", String.valueOf(quantity));
         parameters.add("total_amount", String.valueOf(totalAmount));
         parameters.add("tax_free_amount", "0");
-        parameters.add("cancel_url", scheme + host + port + "/cancel");
-        parameters.add("fail_url", scheme + host + port + "/fail");
+        parameters.add("cancel_url", backUrl + "/cancel");
+        parameters.add("fail_url", backUrl + "/fail");
 
         return parameters;
     }
@@ -162,11 +166,11 @@ public class PayService {
     private MultiValueMap<String, String> isSubscription( MultiValueMap<String, String> parameters, Order order ){
         if(order.isSubscription()){
             parameters.add("cid", "TCSUBSCRIP");
-            parameters.add("approval_url", scheme + host + port + "/payments/kakao/subs/success");
+            parameters.add("approval_url", backUrl + "/payments/kakao/subs/success");
             return parameters;
         }
         parameters.add("cid", "TC0ONETIME");
-        parameters.add("approval_url", scheme + host + port + "/payments/kakao/success");
+        parameters.add("approval_url", backUrl + "/payments/kakao/success");
         return parameters;
     }
 

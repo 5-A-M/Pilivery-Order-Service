@@ -4,7 +4,8 @@ import com.fiveam.orderservice.client.ItemServiceClient;
 import com.fiveam.orderservice.order.dto.ItemOrderDto;
 import com.fiveam.orderservice.order.entity.ItemOrder;
 import com.fiveam.orderservice.response.ItemCartResponseDto;
-import com.fiveam.orderservice.response.ItemInfoResponseDto;
+import com.fiveam.orderservice.response.ItemDetailResponseDto;
+import com.fiveam.orderservice.response.ItemDetailResponseDto;
 import com.fiveam.orderservice.response.ItemSimpleResponseDto;
 import org.mapstruct.Mapper;
 
@@ -24,7 +25,7 @@ public interface ItemOrderMapper {
         itemOrder.setPeriod(itemOrderPostDto.getPeriod());
         itemOrder.setSubscription(itemOrderPostDto.isSubscription());
 
-        ItemInfoResponseDto item = itemService.findVerifiedItem(itemOrderPostDto.getItemId());
+        ItemDetailResponseDto item = itemService.findVerifiedItem(itemOrderPostDto.getItemId());
         itemOrder.setItemId(item.getItemId());
 
         System.out.println("아이템 아이디 설정중: " + item);
@@ -33,6 +34,7 @@ public interface ItemOrderMapper {
     }
 
     default ItemOrder itemCartToItemOrder(ItemCartResponseDto itemCart) { // 장바구니를 불러와서 주문으로 변환
+        System.out.println("Item Cart Response: " + itemCart);
         ItemOrder itemOrder = new ItemOrder();
         itemOrder.setQuantity(itemCart.getQuantity());
         itemOrder.setPeriod(itemCart.getPeriod());
@@ -50,7 +52,7 @@ public interface ItemOrderMapper {
 
         for(ItemCartResponseDto itemCart : itemCarts) {
             itemOrders.add(itemCartToItemOrder(itemCart));
-            itemService.deleteItemCart(itemCart.getItemCartId());
+            itemService.deleteItemCart(itemCart.getItemCartId(), true);
         }
 
         return itemOrders;
@@ -67,7 +69,7 @@ public interface ItemOrderMapper {
         itemOrderSimpleResponseDto.setSubscription(itemOrder.isSubscription());
 
         Long itemId = itemOrder.getItemId();
-        ItemInfoResponseDto item = itemService.findVerifiedItem(itemId);
+        ItemDetailResponseDto item = itemService.findVerifiedItem(itemId);
 
         itemOrderSimpleResponseDto.setItem(ItemSimpleResponseDto.fromItemInfoResponse(item));
 
@@ -92,7 +94,7 @@ public interface ItemOrderMapper {
     }
 
     default ItemOrderDto.SubResponse itemOrderToSubResponse(ItemServiceClient itemService, ItemOrder itemOrder) {
-        ItemInfoResponseDto item = itemService.getItem(itemOrder.getItemId());
+        ItemDetailResponseDto item = itemService.findVerifiedItem(itemOrder.getItemId());
 
         ItemOrderDto.SubResponse subResponse = new ItemOrderDto.SubResponse();
         subResponse.setOrderId(itemOrder.getOrder().getOrderId());

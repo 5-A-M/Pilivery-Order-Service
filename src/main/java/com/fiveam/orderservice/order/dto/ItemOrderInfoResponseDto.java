@@ -28,6 +28,7 @@ public class ItemOrderInfoResponseDto implements Serializable {
     private Long orderId;
 
     public static ItemOrderInfoResponseDto fromEntity(ItemOrder itemOrder) {
+        System.out.println("ItemOrder: " + itemOrder);
         return ItemOrderInfoResponseDto.builder()
                 .itemOrderId(itemOrder.getItemOrderId())
                 .quantity(itemOrder.getQuantity())
