@@ -53,7 +53,7 @@ pipeline {
                 withCredentials([file(credentialsId: 'pilivery-backend-application-yml', variable: 'secretFile')]) {
                     sh "pwd & mkdir /var/lib/jenkins/workspace/${IMAGE_NAME}/src/main/resources"
                     dir('./src/main/resources') {
-                        sh "cp ${secretFile} /var/lib/jenkins/workspace/user-service/src/main/resources/application.yml"
+                        sh "cp ${secretFile} /var/lib/jenkins/workspace/${IMAGE_NAME}/src/main/resources/application.yml"
                     }
                 }
             }
