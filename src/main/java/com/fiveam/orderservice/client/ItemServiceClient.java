@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@FeignClient("item-service")
+@FeignClient("${feign.item-service}")
 public interface ItemServiceClient {
     @GetMapping("/items/{itemId}")
     ItemDetailResponseDto getItem(@PathVariable Long itemId);
