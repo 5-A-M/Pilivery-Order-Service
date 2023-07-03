@@ -5,7 +5,7 @@ plugins {
 }
 
 group = 'com.fiveam'
-version = 'order-service-1.0'
+version = '1.0'
 sourceCompatibility = '11'
 
 configurations {
