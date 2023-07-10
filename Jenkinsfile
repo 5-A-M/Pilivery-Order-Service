@@ -153,7 +153,7 @@ pipeline {
                               sh "git config user.email '${GIT_EMAIL}'"
                               sh "git config user.name '${GIT_USERNAME}'"
                               sh "git add ${IMAGE_NAME}-helm/values.yaml"
-                              sh "git commit -m 'Update Helm Chart ${IMAGE_NAME}:${APP_VERSION}{env.BUILD_NUMBER}'"
+                              sh "git commit -m 'Update Helm Chart ${IMAGE_NAME}:${APP_VERSION}${env.BUILD_NUMBER}'"
                               sh "git push helm ${HELM_TARGET_BRANCH}"
                             }
                         }
