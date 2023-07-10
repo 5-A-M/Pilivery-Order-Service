@@ -8,8 +8,14 @@ pipeline {
         PROFILE = 'local'
 
         REPOSITORY_CREDENTIAL_ID = credentials('GitCredential')
+        GIT_EMAIL = credentials('GitEmail')
+        GIT_USERNAME = credentials('GitUsername')
+
         REPOSITORY_URL = credentials('OrderServiceRepositoryUrl')
         TARGET_BRANCH = 'master'
+
+        HELM_REPOSITORY_URL = credentials('HELM_REPOSITORY_URL')
+        HELM_TARGET_BRANCH = credentials('HELM_TARGET_BRANCH')
 
         AWS_CREDENTIAL_NAME = credentials('AWSCredentials')
         ECR_PATH = credentials('ecrPath')
@@ -17,9 +23,9 @@ pipeline {
         REGION = credentials('region')
     }
     stages{
-        stage('init') {
+        stage('Clean Workspace') {
             steps {
-                echo 'init stage'
+                echo '*********Clean Workspace*********'
                 deleteDir()
             }
             post {
@@ -31,7 +37,7 @@ pipeline {
                 }
             }
         }
-        stage('clone project') {
+        stage('Git Clone Application Code') {
             steps {
                 git url: "$REPOSITORY_URL",
                     branch: "$TARGET_BRANCH",
@@ -48,7 +54,7 @@ pipeline {
             }
         }
 
-        stage('clone secret file') {
+        stage('Clone Application Secret') {
             steps {
                 withCredentials([file(credentialsId: 'pilivery-backend-application-yml', variable: 'secretFile')]) {
                     sh "pwd & mkdir /var/lib/jenkins/workspace/${IMAGE_NAME}/src/main/resources"
@@ -59,7 +65,7 @@ pipeline {
             }
         }
 
-        stage('build project') {
+        stage('Build Application') {
             steps {
                 sh '''
         		 ./gradlew clean build 
@@ -75,7 +81,7 @@ pipeline {
             }
         }
 
-        stage('docker build and push to ecr') {
+        stage('Docker Build And Push To ECR') {
             steps {
                 script{
                     // cleanup current user docker credentials
@@ -99,5 +105,66 @@ pipeline {
                 }
             }
         }
+
+        stage("Clean Helm Workspace") {
+                    steps {
+                        script {
+                            def helmWorkSpacePath = "/var/lib/jenkins/workspace/helm"
+                            dir(helmWorkSpacePath) {
+                                echo '*********Clean Workspace*********'
+                                deleteDir()
+                            }
+                        }
+                    }
+
+                    post {
+                        success {
+                            echo 'success clean workspace'
+                        }
+                        failure {
+                            error 'fail clean workspace' // exit pipeline
+                        }
+                    }
+                }
+
+                stage('Git Clone Helm Chart Repository') {
+                    steps {
+                        script {
+                            def helmWorkSpacePath = "/var/lib/jenkins/workspace/helm"
+                            dir(helmWorkSpacePath) {
+                                git url: "$HELM_REPOSITORY_URL",
+                                    branch: "$HELM_TARGET_BRANCH",
+                                    credentialsId: "$REPOSITORY_CREDENTIAL_ID"
+                                sh "ls -al"
+                            }
+                        }
+                    }
+                }
+
+                stage('Update Helm Chart And Push') {
+                    steps {
+                        script {
+                            def helmWorkSpacePath = "/var/lib/jenkins/workspace/helm"
+                            dir(helmWorkSpacePath) {
+                              sh "git remote add helm ${HELM_REPOSITORY_URL}"
+                              sh "sed -i 's/tag: .*/tag: 1.0.${env.BUILD_NUMBER}/' ${IMAGE_NAME}-helm/values.yaml"
+                              sh "git config user.email '${GIT_EMAIL}'"
+                              sh "git config user.name '${GIT_USERNAME}'"
+                              sh "git add ${IMAGE_NAME}-helm/values.yaml"
+                              sh "git commit -m 'Update Helm Chart ${IMAGE_NAME}:${env.BUILD_NUMBER}'"
+                              sh "git push helm ${HELM_TARGET_BRANCH}"
+                            }
+                        }
+                    }
+
+                    post {
+                        success {
+                            echo 'Success Change Helm Chart And Push'
+                        }
+                        failure {
+                            error 'Fail to Change Helm Chart'
+                        }
+                    }
+                }
     }
 }
