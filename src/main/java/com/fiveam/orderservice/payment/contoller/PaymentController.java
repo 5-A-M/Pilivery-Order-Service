@@ -29,6 +29,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+@CrossOrigin
 @RestController
 @Slf4j
 @RequestMapping("/payments")
